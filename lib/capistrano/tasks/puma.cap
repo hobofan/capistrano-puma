@@ -58,19 +58,8 @@ namespace :puma do
   %w[phased-restart restart].map do |command|
     desc "#{command} puma"
     task command do
-      on roles (fetch(:puma_role)) do
-        within current_path do
-          with rack_env: fetch(:puma_env) do
-            if test "[ -f #{fetch(:puma_pid)} ]" and test "kill -0 $( cat #{fetch(:puma_pid)} )"
-              # NOTE pid exist but state file is nonsense, so ignore that case
-              execute :bundle, 'exec', :pumactl, "-S #{fetch(:puma_state)} #{command}"
-            else
-              # Puma is not running or state file is not present : Run it
-              execute :bundle, 'exec', :puma, "-C #{fetch(:puma_conf)}"
-            end
-          end
-        end
-      end
+      invoke 'puma:stop'
+      invoke 'puma:start'
     end
   end
 
